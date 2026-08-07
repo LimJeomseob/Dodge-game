@@ -3,7 +3,7 @@ import Stage, { TazolMan, TouchLeash } from '../ui/Stage.jsx'
 import { Shape, Label, StartPad } from '../ui/Shapes.jsx'
 import { ArmHint } from '../ui/Hud.jsx'
 import useDodgeScene from './useDodgeScene.js'
-import { insideWithMargin, inBeam, dist, findSafeSpot, scaleShape } from '../engine/geometry.js'
+import { insideWithMargin, dist, findSafeSpot, scaleShape } from '../engine/geometry.js'
 import { EYEFIELD } from '../data/maps.js'
 import { TUNING } from '../data/config.js'
 import { sfx } from '../audio/chiptune.js'
@@ -13,11 +13,12 @@ const T = TUNING.eyefield
 /**
  * 원작 p8 「2 스테이지 죽음의 길」.
  *
- * 빨간 도형 전부가 사망 판정. 흰 틈새가 안전 경로다.
- * v4 확정 연출:
- *   - 가장 큰 눈 = 태양. 8방향 삼각 광선이 8초에 한 바퀴 돌며 안전 틈새를 쓸고 간다.
+ * 붉은 눈 밭의 좁은 틈새가 안전 경로다. 흰 곳으로만 지나가 히든 출구에 닿으면 통과.
  *   - 작은 빨간 화살촉(지그재그) = 번개. 예고 깜빡임 뒤 점등하는 순간에만 판정.
  *   - 눈동자는 커서를 시선 추적한다(연출).
+ *
+ * 기획에 있던 「회전하는 삼각 광선」은 뺐다. 눈 밭 위를 계속 쓸고 지나가
+ * 출구까지 가는 길 자체를 막아 버렸다 (tools/solve_eyefield.mjs 로 확인).
  */
 export default function EyeFieldStage({ onClear, onDeath, vp, paused }) {
   // 보이는 도형과 판정 도형이 항상 같도록, 축소한 결과를 렌더·판정에 함께 쓴다
@@ -25,10 +26,7 @@ export default function EyeFieldStage({ onClear, onDeath, vp, paused }) {
     () => split(EYEFIELD.map((s) => scaleShape(s, T.shrink))),
     []
   )
-  // 가장 큰 눈을 태양으로 삼는다
-  const sun = useMemo(() => eyes.reduce((a, b) => (radiusOf(b) > radiusOf(a) ? b : a), eyes[0]), [eyes])
-
-  const [frame, setFrame] = useState({ angle: 0, boltOn: false, boltWarn: false, cursor: null })
+  const [frame, setFrame] = useState({ boltOn: false, boltWarn: false, cursor: null })
   const frameRef = useRef(frame)
   const cleared = useRef(false)
 
@@ -50,13 +48,11 @@ export default function EyeFieldStage({ onClear, onDeath, vp, paused }) {
     paused,
     armRadius: vp.target(28),
     check: (dt, t, c) => {
-      const angle = ((t / T.rayPeriod) * 360) % 360
       const phase = t % T.boltPeriod
       const warn = phase < T.boltWarn
       const on = phase >= T.boltWarn && phase < T.boltWarn + T.boltStrike
       if (on && !frameRef.current.boltOn) sfx('thunder')
       frameRef.current = {
-        angle,
         boltOn: on,
         boltWarn: warn,
         // 히든 출구를 오래 못 찾으면 눈에 띄게 알려 준다
@@ -75,14 +71,6 @@ export default function EyeFieldStage({ onClear, onDeath, vp, paused }) {
       // 붉은 눈 본체
       for (const s of deadly) if (insideWithMargin(c.x, c.y, s, margin)) return true
 
-      // 태양 광선 — 회전하는 부채꼴 8개
-      const scx = sun.cx ?? 480
-      const scy = sun.cy ?? 270
-      for (let i = 0; i < T.rayCount; i++) {
-        const a = angle + (360 / T.rayCount) * i
-        if (inBeam(c.x, c.y, scx, scy, a, T.rayHalfAngle, T.rayLength)) return true
-      }
-
       // 번개 — 점등 순간에만 판정
       if (on) {
         for (const b of bolts) if (insideWithMargin(c.x, c.y, boltStrikeShape(b), margin)) return true
@@ -92,30 +80,10 @@ export default function EyeFieldStage({ onClear, onDeath, vp, paused }) {
   })
 
   const cursor = frame.cursor
-  const scx = sun.cx ?? 480
-  const scy = sun.cy ?? 270
 
   return (
     <>
       <Stage pointerRef={pointer.ref} bind={pointer.bind} background="#ffffff">
-        {/* 회전하는 태양 광선 (눈 아래에 깔아 눈이 태양처럼 보이게) */}
-        <g pointerEvents="none" opacity="0.85">
-          {Array.from({ length: T.rayCount }, (_, i) => {
-            const a = ((frame.angle + (360 / T.rayCount) * i) * Math.PI) / 180
-            const half = (T.rayHalfAngle * Math.PI) / 180
-            const p1 = [scx + Math.cos(a - half) * T.rayLength, scy + Math.sin(a - half) * T.rayLength]
-            const p2 = [scx + Math.cos(a + half) * T.rayLength, scy + Math.sin(a + half) * T.rayLength]
-            return (
-              <polygon
-                key={i}
-                points={`${scx},${scy} ${p1[0]},${p1[1]} ${p2[0]},${p2[1]}`}
-                fill="#ff6b00"
-                opacity="0.55"
-              />
-            )
-          })}
-        </g>
-
         {/* 붉은 눈 6개 */}
         {eyes.map((s, i) => (
           <Shape key={`e${i}`} s={s} />
@@ -200,12 +168,6 @@ function polyArea(pts) {
     a += pts[j][0] * pts[i][1] - pts[i][0] * pts[j][1]
   }
   return Math.abs(a / 2)
-}
-
-function radiusOf(s) {
-  if (s.t === 'circle') return s.r
-  if (s.t === 'ellipse') return Math.max(s.rx, s.ry)
-  return 0
 }
 
 /** 눈동자가 커서 쪽으로 최대 pupilFollow 만큼 쏠린다 */
