@@ -29,7 +29,7 @@ export default function BrokenWorld({ onClear, onDeath, vp, paused }) {
   const exitR = vp.target(T.exitRadius)
   const margin = vp.margin(T.margin)
 
-  const { pointer, armed } = useDodgeScene({
+  const { pointer, armed, showHint } = useDodgeScene({
     startPoint: start,
     onDeath,
     paused,
@@ -96,7 +96,7 @@ export default function BrokenWorld({ onClear, onDeath, vp, paused }) {
         <TouchLeash p={pointer.pos} />
         {armed && cursor && <TazolMan x={cursor.x} y={cursor.y} color="#fff" glitch={0.6} />}
       </Stage>
-      {!armed && <ArmHint mobile={vp.mobile} />}
+      {showHint && <ArmHint mobile={vp.mobile} />}
     </>
   )
 }

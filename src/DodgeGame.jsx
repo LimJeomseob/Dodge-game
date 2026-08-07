@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import useViewport from './hooks/useViewport.js'
+import useFullscreen from './hooks/useFullscreen.js'
 import Hud, { GameOverOverlay } from './ui/Hud.jsx'
+import { markRotateHintSeen, resetHints, shouldShowRotateHint } from './ui/hints.js'
 import * as audio from './audio/chiptune.js'
 
 import Title from './scenes/Title.jsx'
@@ -52,12 +54,21 @@ function initialIndex() {
 
 export default function DodgeGame() {
   const vp = useViewport()
+  const fullscreen = useFullscreen()
   const [index, setIndex] = useState(initialIndex)
   const [deaths, setDeaths] = useState(0)
   const [dead, setDead] = useState(false)
   const [muted, setMuted] = useState(false)
   // 재시작할 때마다 값이 바뀌어 씬 컴포넌트를 통째로 초기화한다.
   const [attempt, setAttempt] = useState(0)
+  // 회전 안내는 세션당 한 번만, 잠깐 보였다 사라진다.
+  const [rotateHint, setRotateHint] = useState(shouldShowRotateHint)
+  useEffect(() => {
+    if (!rotateHint) return
+    markRotateHintSeen()
+    const id = setTimeout(() => setRotateHint(false), 3600)
+    return () => clearTimeout(id)
+  }, [rotateHint])
 
   const scene = FLOW[index]
   const deadRef = useRef(false)
@@ -88,6 +99,8 @@ export default function DodgeGame() {
   }, [])
 
   const restartGame = useCallback(() => {
+    // 처음부터 다시 하는 것이니 안내도 되살린다
+    resetHints()
     setDead(false)
     setDeaths(0)
     setIndex(0)
@@ -109,7 +122,7 @@ export default function DodgeGame() {
   let body
   switch (scene.key) {
     case 'TITLE':
-      body = <Title {...props} onStart={advance} />
+      body = <Title {...props} onStart={advance} fullscreen={fullscreen} />
       break
     case 'TUTORIAL':
       body = <Tutorial {...props} />
@@ -173,16 +186,22 @@ export default function DodgeGame() {
           {body}
         </div>
         {scene.hud && (
-          <Hud deaths={deaths} muted={muted} onToggleMute={toggleMute} stageName={scene.name} />
+          <Hud
+            deaths={deaths}
+            muted={muted}
+            onToggleMute={toggleMute}
+            stageName={scene.name}
+            fullscreen={fullscreen}
+          />
         )}
         {dead && <GameOverOverlay onRetry={retry} deaths={deaths} />}
-        {vp.portrait && <RotateHint />}
+        {vp.portrait && rotateHint && <RotateHint />}
       </div>
     </div>
   )
 }
 
-/** 세로로 들고 있을 때 한 번 보여주는 안내 */
+/** 세로로 들고 있을 때 세션당 한 번만 보여주는 안내 */
 function RotateHint() {
   return <div className="rotate-hint">📱 기기를 가로로 돌려서 플레이하세요</div>
 }

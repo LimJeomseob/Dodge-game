@@ -3,6 +3,7 @@
 // 로딩 실패나 오디오 미지원 환경에서도 게임은 그대로 돌아가야 하므로 모든 호출을 방어한다.
 
 let Tone = null
+let loading = null
 let ready = false
 let muted = false
 let bgmPart = null
@@ -27,11 +28,28 @@ function seq(pitches) {
   return pitches.map((p, i) => ({ time: `0:${i * 0.5}`, note: p, dur: '8n' }))
 }
 
+/**
+ * Tone.js 모듈만 미리 받아 둔다 (소리는 아직 안 남).
+ * 이걸 안 하면 첫 탭에서 340KB 를 내려받느라 화면이 멈춘 것처럼 보인다.
+ */
+export function preloadAudio() {
+  if (Tone || loading) return loading || Promise.resolve()
+  loading = import('tone')
+    .then((m) => {
+      Tone = m
+    })
+    .catch(() => {
+      /* 오디오 없이도 게임은 그대로 돌아간다 */
+    })
+  return loading
+}
+
 /** 첫 사용자 입력에서 호출. 실패해도 조용히 무음으로 진행한다. */
 export async function initAudio() {
   if (ready) return true
   try {
-    Tone = await import('tone')
+    if (!Tone) await preloadAudio()
+    if (!Tone) return false
     await Tone.start()
     lead = new Tone.PolySynth(Tone.Synth, {
       oscillator: { type: 'square' },

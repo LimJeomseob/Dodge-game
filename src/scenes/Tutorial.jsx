@@ -21,7 +21,7 @@ export default function Tutorial({ onClear, onDeath, vp, paused }) {
   const [cursor, setCursor] = useState(null)
   const cleared = useRef(false)
 
-  const { pointer, armed, start } = useDodgeScene({
+  const { pointer, armed, start, showHint } = useDodgeScene({
     shapes: WALLS,
     startRegion: [0.03, 0.15, 0.22, 0.85],
     onDeath,
@@ -51,7 +51,7 @@ export default function Tutorial({ onClear, onDeath, vp, paused }) {
         <TouchLeash p={pointer.pos} />
         {armed && cursor && <TazolMan x={cursor.x} y={cursor.y} />}
       </Stage>
-      {!armed && <ArmHint mobile={vp.mobile} />}
+      {showHint && <ArmHint mobile={vp.mobile} />}
     </>
   )
 }

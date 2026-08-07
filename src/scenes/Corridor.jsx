@@ -56,7 +56,7 @@ export default function Corridor({ onClear, onDeath, vp, paused }) {
   const margin = vp.margin(T.margin)
   const dotR = vp.mobile ? 13 : 16
 
-  const { pointer, armed } = useDodgeScene({
+  const { pointer, armed, showHint } = useDodgeScene({
     startPoint: start,
     onDeath,
     paused,
@@ -121,7 +121,7 @@ export default function Corridor({ onClear, onDeath, vp, paused }) {
         <TouchLeash p={pointer.pos} />
         {armed && cursor && <TazolMan x={cursor.x} y={cursor.y} scale={0.65} />}
       </Stage>
-      {!armed && <ArmHint mobile={vp.mobile} />}
+      {showHint && <ArmHint mobile={vp.mobile} />}
     </>
   )
 }

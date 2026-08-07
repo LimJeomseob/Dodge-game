@@ -48,7 +48,7 @@ export default function Laser({ onClear, onDeath, vp, paused }) {
   const margin = vp.margin(T.margin)
   const boltR = vp.mobile ? T.boltR * 0.85 : T.boltR
 
-  const { pointer, armed } = useDodgeScene({
+  const { pointer, armed, showHint } = useDodgeScene({
     startPoint: start,
     onDeath,
     paused,
@@ -119,7 +119,7 @@ export default function Laser({ onClear, onDeath, vp, paused }) {
         <TouchLeash p={pointer.pos} />
         {armed && cursor && <TazolMan x={cursor.x} y={cursor.y} scale={0.8} />}
       </Stage>
-      {!armed && <ArmHint mobile={vp.mobile} />}
+      {showHint && <ArmHint mobile={vp.mobile} />}
     </>
   )
 }

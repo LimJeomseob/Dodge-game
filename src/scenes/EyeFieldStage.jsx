@@ -43,7 +43,7 @@ export default function EyeFieldStage({ onClear, onDeath, vp, paused }) {
   const exitR = vp.target(T.exitRadius)
   const margin = vp.margin(T.margin)
 
-  const { pointer, armed } = useDodgeScene({
+  const { pointer, armed, showHint } = useDodgeScene({
     shapes: deadly,
     startPoint: start,
     onDeath,
@@ -150,7 +150,7 @@ export default function EyeFieldStage({ onClear, onDeath, vp, paused }) {
         <TouchLeash p={pointer.pos} />
         {armed && cursor && <TazolMan x={cursor.x} y={cursor.y} color="#000" />}
       </Stage>
-      {!armed && <ArmHint mobile={vp.mobile} />}
+      {showHint && <ArmHint mobile={vp.mobile} />}
     </>
   )
 }

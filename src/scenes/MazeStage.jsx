@@ -30,7 +30,7 @@ export default function MazeStage({ mapIndex, onClear, onDeath, vp, paused }) {
   const exitR = vp.target(TUNING.maze.exitRadius)
   const margin = vp.margin(TUNING.maze.margin)
 
-  const { pointer, armed, start } = useDodgeScene({
+  const { pointer, armed, start, showHint } = useDodgeScene({
     shapes: walls,
     startRegion: cfg.startRegion,
     startPoint: cfg.start,
@@ -95,7 +95,7 @@ export default function MazeStage({ mapIndex, onClear, onDeath, vp, paused }) {
         <TouchLeash p={pointer.pos} />
         {armed && cursor && <TazolMan x={cursor.x} y={cursor.y} />}
       </Stage>
-      {!armed && <ArmHint mobile={vp.mobile} />}
+      {showHint && <ArmHint mobile={vp.mobile} />}
     </>
   )
 }

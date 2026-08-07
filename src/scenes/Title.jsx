@@ -1,16 +1,32 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Stage from '../ui/Stage.jsx'
 import { Label } from '../ui/Shapes.jsx'
-import { initAudio, playBgm } from '../audio/chiptune.js'
+import { initAudio, playBgm, preloadAudio } from '../audio/chiptune.js'
+import { lockLandscape } from '../hooks/useFullscreen.js'
 
 /** 원작 p1~3 — 타이틀 / 하는 법 / 제작자 소개 */
-export default function Title({ onStart, vp }) {
+export default function Title({ onStart, vp, fullscreen }) {
   const [howto, setHowto] = useState(false)
+  const started = useRef(false)
 
-  const begin = async () => {
-    // 브라우저 정책상 오디오는 사용자 제스처 안에서만 시작할 수 있다
-    await initAudio()
-    playBgm('title')
+  // 탭하기 전에 Tone.js 를 미리 받아 둔다. 탭한 뒤에 받으면 화면이 멈춘 것처럼 보인다.
+  useEffect(() => {
+    preloadAudio()
+  }, [])
+
+  const begin = () => {
+    if (started.current) return // 터치에서 pointerdown+click 이 겹쳐 두 번 불리는 것 방지
+    started.current = true
+    // 오디오는 사용자 제스처 안에서 시작해야 하지만, 기다리지는 않는다.
+    // 네트워크가 느려도 화면은 즉시 넘어가야 한다.
+    initAudio().then((ok) => ok && playBgm('title'))
+    // 전체화면·가로 고정도 이 제스처 안에서 요청해야 브라우저가 허용한다.
+    // 거부되거나 지원하지 않아도 게임 진행에는 영향이 없다.
+    // 데스크톱에서 갑자기 전체화면이 되면 당황스러우니 터치 기기에서만 자동 진입하고,
+    // 그 외에는 HUD 의 ⛶ 버튼으로 직접 켜게 둔다.
+    const touchDevice =
+      vp.mobile || (typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches)
+    if (touchDevice) fullscreen?.request().then((ok) => ok && lockLandscape())
     onStart()
   }
 
@@ -60,11 +76,24 @@ export default function Title({ onStart, vp }) {
   )
 }
 
+/**
+ * 메뉴 버튼.
+ * 폰에서 확실히 눌리도록 보이는 크기보다 넓은 투명 영역을 깔고,
+ * pointerdown 과 click 을 모두 받는다 (한쪽만 오는 브라우저가 있다).
+ */
 function MenuButton({ x, y, label, onClick, primary, small }) {
   const w = small ? 300 : 340
   const h = small ? 62 : 84
+  const pad = 18
   return (
-    <g onPointerDown={onClick} style={{ cursor: 'pointer' }}>
+    <g onPointerDown={onClick} onClick={onClick} style={{ cursor: 'pointer' }}>
+      <rect
+        x={x - w / 2 - pad}
+        y={y - h / 2 - pad}
+        width={w + pad * 2}
+        height={h + pad * 2}
+        fill="transparent"
+      />
       <rect x={x - w / 2} y={y - h / 2} width={w} height={h} rx="16" fill={primary ? '#ffffff' : '#003a52'} />
       <Label x={x} y={y} size={small ? 26 : 34} fill={primary ? '#00b0f0' : '#ffffff'}>
         {label}

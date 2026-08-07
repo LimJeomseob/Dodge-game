@@ -1,5 +1,5 @@
-/** 화면 우상단 고정 HUD — 사망 카운터 + 음소거 토글 (모든 씬 공통) */
-export default function Hud({ deaths, muted, onToggleMute, stageName }) {
+/** 화면 우상단 고정 HUD — 사망 카운터 + 음소거·전체화면 토글 (모든 씬 공통) */
+export default function Hud({ deaths, muted, onToggleMute, stageName, fullscreen }) {
   return (
     <div className="hud">
       {stageName && <span className="hud-stage">{stageName}</span>}
@@ -7,6 +7,15 @@ export default function Hud({ deaths, muted, onToggleMute, stageName }) {
       <button className="hud-btn" onClick={onToggleMute} aria-label={muted ? '소리 켜기' : '소리 끄기'}>
         {muted ? '🔇' : '🔊'}
       </button>
+      {fullscreen?.supported && (
+        <button
+          className="hud-btn"
+          onClick={fullscreen.toggle}
+          aria-label={fullscreen.active ? '전체화면 끄기' : '전체화면'}
+        >
+          {fullscreen.active ? '⤢' : '⛶'}
+        </button>
+      )}
     </div>
   )
 }
