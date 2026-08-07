@@ -43,6 +43,11 @@ export default function useDodgeScene({
     onDeath()
   }, [onDeath])
 
+  // 시작 지점을 짚은 순간을 0초로 삼는다.
+  // 그렇지 않으면 생존 시간(레이저·얼음)이 시작 전부터 흘러, 가만히 기다렸다가
+  // 출발하는 것만으로 스테이지가 끝나 버린다.
+  const armedAt = useRef(0)
+
   useGameLoop((dt, elapsed) => {
     const c = pointer.posRef.current
     if (!c.active) return
@@ -50,13 +55,14 @@ export default function useDodgeScene({
       const d = Math.hypot(c.x - start.current.x, c.y - start.current.y)
       if (d <= armRadius) {
         armedRef.current = true
+        armedAt.current = elapsed
         setArmed(true)
         markArmHintSeen()
         sfx('click')
       }
       return
     }
-    if (check(dt, elapsed, c)) kill()
+    if (check(dt, elapsed - armedAt.current, c)) kill()
   }, !paused && !doneRef.current)
 
   return { pointer, armed, start: start.current, kill, doneRef, showHint: hintAllowed && !armed }
