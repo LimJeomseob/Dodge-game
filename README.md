@@ -5,6 +5,8 @@
 
 **플레이 : https://limjeomseob.github.io/Dodge-game/**
 
+![도형 피하기](public/og.png)
+
 ## 실행
 
 ```bash
@@ -21,6 +23,19 @@ npm run build    # dist/ 로 정적 빌드
 
 `main` 에 푸시되면 `.github/workflows/deploy.yml` 이 빌드해 GitHub Pages 로 올린다.
 서버가 필요 없는 정적 사이트라 별도 설정은 없다.
+
+## 썸네일
+
+`public/og.svg` 가 원본이고, 여기서 렌더한 `public/og.png` (1200×630) 가
+링크를 공유할 때 뜨는 미리보기 이미지다. 디자인을 고쳤으면 다시 렌더한다.
+
+```bash
+npx playwright install chromium   # 처음 한 번
+node tools/make_thumbnail.mjs
+```
+
+GitHub 저장소 카드에도 쓰려면 **Settings → General → Social preview** 에서
+`public/og.png` 를 직접 올리면 된다 (GitHub 은 저장소 파일을 자동으로 쓰지 않는다).
 
 ## 조작
 
