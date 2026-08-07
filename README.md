@@ -3,6 +3,8 @@
 임재경이 그린 32장짜리 원작 슬라이드를 그대로 옮긴 마우스/터치 회피 게임.
 제작자 : 임재경 · 캐릭터 : 타졸맨
 
+**플레이 : https://limjeomseob.github.io/Dodge-game/**
+
 ## 실행
 
 ```bash
@@ -10,6 +12,15 @@ npm install
 npm run dev      # http://localhost:5173
 npm run build    # dist/ 로 정적 빌드
 ```
+
+> Windows PowerShell 에서 `npm.ps1 파일을 로드할 수 없습니다` 오류가 나면
+> 실행 정책 때문이다. `npm` 대신 `npm.cmd` 를 쓰거나,
+> `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` 후 창을 다시 열면 된다.
+
+## 배포
+
+`main` 에 푸시되면 `.github/workflows/deploy.yml` 이 빌드해 GitHub Pages 로 올린다.
+서버가 필요 없는 정적 사이트라 별도 설정은 없다.
 
 ## 조작
 
