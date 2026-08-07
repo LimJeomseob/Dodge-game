@@ -55,7 +55,14 @@ export default function EyeFieldStage({ onClear, onDeath, vp, paused }) {
       const warn = phase < T.boltWarn
       const on = phase >= T.boltWarn && phase < T.boltWarn + T.boltStrike
       if (on && !frameRef.current.boltOn) sfx('thunder')
-      frameRef.current = { angle, boltOn: on, boltWarn: warn, cursor: { x: c.x, y: c.y, touch: c.touch } }
+      frameRef.current = {
+        angle,
+        boltOn: on,
+        boltWarn: warn,
+        // 히든 출구를 오래 못 찾으면 눈에 띄게 알려 준다
+        hintExit: t > T.exitHintAfter,
+        cursor: { x: c.x, y: c.y, touch: c.touch },
+      }
       setFrame(frameRef.current)
 
       if (!cleared.current && dist(c.x, c.y, exit.x, exit.y) <= exitR) {
@@ -138,8 +145,27 @@ export default function EyeFieldStage({ onClear, onDeath, vp, paused }) {
           2 스테이지 죽음의 길
         </Label>
 
-        {/* 히든 출구 — 작고 은근하게 */}
+        {/* 히든 출구 — 작고 은근하게. 오래 헤매면 크게 표시해 준다 */}
         <g pointerEvents="none">
+          {frame.hintExit && (
+            <>
+              <circle
+                cx={exit.x}
+                cy={exit.y}
+                r={exitR}
+                fill="none"
+                stroke="#00b0f0"
+                strokeWidth="4"
+                opacity="0.9"
+              >
+                <animate attributeName="r" values={`${exitR};${exitR * 4};${exitR}`} dur="1.6s" repeatCount="indefinite" />
+                <animate attributeName="opacity" values="0.9;0;0.9" dur="1.6s" repeatCount="indefinite" />
+              </circle>
+              <Label x={exit.x} y={exit.y - exitR - 26} size={18} fill="#00b0f0" stroke="#fff">
+                여기가 출구
+              </Label>
+            </>
+          )}
           <circle cx={exit.x} cy={exit.y} r={exitR} fill="#111" opacity="0.85" />
           <circle cx={exit.x} cy={exit.y} r={exitR * 0.5} fill="#00b0f0">
             <animate attributeName="opacity" values="0.4;1;0.4" dur="1.4s" repeatCount="indefinite" />
