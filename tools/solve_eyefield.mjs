@@ -23,10 +23,10 @@ import { TUNING } from '../src/data/config.js'
 const T = TUNING.eyefield
 const SHRINK = Number(process.argv[2] ?? T.shrink)
 const SPEED = Number(process.argv[3] ?? 600) // 커서 최대 속도 px/s (넉넉하게)
-const RAYS = Number(process.argv[4] ?? T.rayCount)
-const RAY_LEN = Number(process.argv[5] ?? T.rayLength)
-const RAY_HALF = Number(process.argv[6] ?? T.rayHalfAngle)
-const RAY_PERIOD = Number(process.argv[7] ?? T.rayPeriod)
+const RAYS = Number(process.argv[4] ?? T.rayCount ?? 0) // 광선은 현재 빠져 있다
+const RAY_LEN = Number(process.argv[5] ?? T.rayLength ?? 0)
+const RAY_HALF = Number(process.argv[6] ?? T.rayHalfAngle ?? 0)
+const RAY_PERIOD = Number(process.argv[7] ?? T.rayPeriod ?? 1)
 
 const CELL = 6
 const COLS = Math.floor(960 / CELL)
@@ -109,8 +109,8 @@ for (let r = 0; r < ROWS; r++) {
 const raySpacing = 360 / RAYS
 function blockedAt(i, t) {
   if (staticBlocked[i]) return true
-  // 회전 광선
-  if (polarR[i] <= RAY_LEN && polarR[i] >= 1) {
+  // 회전 광선 (RAYS=0 이면 건너뛴다)
+  if (RAYS > 0 && polarR[i] <= RAY_LEN && polarR[i] >= 1) {
     const angle = ((t / RAY_PERIOD) * 360) % 360
     let d = (((polarA[i] - angle) % raySpacing) + raySpacing) % raySpacing
     if (d > raySpacing / 2) d -= raySpacing
