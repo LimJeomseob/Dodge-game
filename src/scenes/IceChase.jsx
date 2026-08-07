@@ -30,7 +30,7 @@ export default function IceChase({ onClear, onDeath, vp, paused }) {
   const iceR = vp.mobile ? T.iceR * 0.85 : T.iceR
   const faceR = vp.target(T.faceR)
 
-  const { pointer, armed } = useDodgeScene({
+  const { pointer, armed, showHint } = useDodgeScene({
     startPoint: start,
     onDeath,
     paused,
@@ -124,7 +124,7 @@ export default function IceChase({ onClear, onDeath, vp, paused }) {
         <TouchLeash p={pointer.pos} />
         {armed && cursor && phase === 'run' && <TazolMan x={cursor.x} y={cursor.y} />}
       </Stage>
-      {!armed && <ArmHint mobile={vp.mobile} />}
+      {showHint && <ArmHint mobile={vp.mobile} />}
     </>
   )
 }

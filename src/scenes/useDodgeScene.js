@@ -3,6 +3,7 @@ import usePointer from '../hooks/usePointer.js'
 import useGameLoop from '../hooks/useGameLoop.js'
 import { findSafeSpot } from '../engine/geometry.js'
 import { sfx } from '../audio/chiptune.js'
+import { markArmHintSeen, shouldShowArmHint } from '../ui/hints.js'
 
 /**
  * 회피 씬 공통 뼈대.
@@ -33,6 +34,9 @@ export default function useDodgeScene({
       startPoint || (shapes ? findSafeSpot(shapes, startRegion) : { x: 60, y: 480 })
   }
 
+  // 조작법 안내는 첫 스테이지에서만. 씬 진입 시점에 한 번 정해 두고 바꾸지 않는다.
+  const hintAllowed = useRef(shouldShowArmHint()).current
+
   const kill = useCallback(() => {
     if (doneRef.current) return
     doneRef.current = true
@@ -47,6 +51,7 @@ export default function useDodgeScene({
       if (d <= armRadius) {
         armedRef.current = true
         setArmed(true)
+        markArmHintSeen()
         sfx('click')
       }
       return
@@ -54,5 +59,5 @@ export default function useDodgeScene({
     if (check(dt, elapsed, c)) kill()
   }, !paused && !doneRef.current)
 
-  return { pointer, armed, start: start.current, kill, doneRef }
+  return { pointer, armed, start: start.current, kill, doneRef, showHint: hintAllowed && !armed }
 }
