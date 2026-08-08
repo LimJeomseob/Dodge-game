@@ -42,6 +42,7 @@ export const TUNING = {
     buttonMove: 3, // 진짜 「공격」 버튼 이동 주기(초)
     fakeCount: 12, // 가짜 버튼 개수
     buttonR: 46,
+    splitHold: 10, // 보스가 갈라진 뒤 다음 씬까지 머무는 시간(초)
   },
   corridor: {
     margin: 4,
@@ -62,6 +63,19 @@ export const TUNING = {
     iceR: 34,
     survive: 15, // 생존 시간(초)
     faceR: 96,
+    // 얼음은 처음부터 다 나오지 않는다. 하나로 시작해 spawnInterval 마다 하나씩,
+    // maxIce 까지 늘어난다. 초반이 헐거워진 만큼은 추격 캐릭터가 메운다.
+    spawnInterval: 5, // 얼음이 하나 늘어나는 간격(초)
+    maxIce: 3, // 최대 얼음 개수
+  },
+  // 3 스테이지(레이저·얼음 추격)에 등장하는 추격 캐릭터 — 닿으면 즉사
+  chaser: {
+    r: 40, // 판정 반경
+    speed: 165, // 추격 속도 px/s — 얼음(260)보다 느려 계속 움직이면 따돌릴 수 있다
+    delay: 2, // 시작 후 등장까지(초)
+    // 등장 직후 grace 초 동안은 반투명하게 걸어 들어오기만 하고 판정이 없다.
+    // 화면 밖에서 갑자기 나타나 그 자리에서 즉사시키면 피할 방법이 없다.
+    grace: 1.2,
   },
   broken: {
     margin: 4,

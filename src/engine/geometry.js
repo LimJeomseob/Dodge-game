@@ -84,6 +84,22 @@ function distToPolyEdge(px, py, pts) {
   return best
 }
 
+/**
+ * 추격체 p 를 (tx,ty) 쪽으로 v 픽셀만큼 옮긴다.
+ * box: [x0,y0,x1,y1] 로 이동 범위를 제한한다 (없으면 무대 전체).
+ * 얼음과 3 스테이지 추격 캐릭터가 같은 계산을 쓴다.
+ */
+export function stepToward(p, tx, ty, v, box) {
+  const d = dist(p.x, p.y, tx, ty)
+  if (d < 1) return p
+  const [x0, y0, x1, y1] = box || [0, 0, STAGE_W, STAGE_H]
+  return {
+    ...p,
+    x: clamp(p.x + ((tx - p.x) / d) * v, x0, x1),
+    y: clamp(p.y + ((ty - p.y) / d) * v, y0, y1),
+  }
+}
+
 /** 회전하는 광선(부채꼴) 충돌: 중심에서 뻗은 반각 halfDeg, 길이 len 의 빔 */
 export function inBeam(px, py, cx, cy, angleDeg, halfDeg, len) {
   const d = dist(px, py, cx, cy)

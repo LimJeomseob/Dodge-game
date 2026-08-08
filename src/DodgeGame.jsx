@@ -11,6 +11,7 @@ import MazeStage from './scenes/MazeStage.jsx'
 import Escape from './scenes/Escape.jsx'
 import EyeFieldStage from './scenes/EyeFieldStage.jsx'
 import BossFight from './scenes/BossFight.jsx'
+import BossSplit from './scenes/BossSplit.jsx'
 import Corridor from './scenes/Corridor.jsx'
 import Laser from './scenes/Laser.jsx'
 import IceChase from './scenes/IceChase.jsx'
@@ -33,6 +34,7 @@ const FLOW = [
   { key: 'ESCAPE', bgm: 'maze', hud: true, name: '탈출' },
   { key: 'EYEFIELD', bgm: 'tense', hud: true, name: '2 스테이지 죽음의 길' },
   { key: 'BOSS', bgm: 'boss', hud: true, name: '보스 — 붉은 눈' },
+  { key: 'BOSS_SPLIT', bgm: 'glitch', hud: false },
   { key: 'CORRIDOR', bgm: 'tense', hud: true, name: '3 스테이지 통로' },
   { key: 'LASER', bgm: 'tense', hud: true, name: '레이저' },
   { key: 'ICECHASE', bgm: 'tense', hud: true, name: '얼음 추격' },
@@ -144,6 +146,9 @@ export default function DodgeGame() {
       break
     case 'BOSS':
       body = <BossFight {...props} />
+      break
+    case 'BOSS_SPLIT':
+      body = <BossSplit {...props} />
       break
     case 'CORRIDOR':
       body = <Corridor {...props} />
