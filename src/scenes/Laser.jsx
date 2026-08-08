@@ -1,23 +1,35 @@
 import { useMemo, useRef, useState } from 'react'
 import Stage, { TazolMan, TouchLeash } from '../ui/Stage.jsx'
 import { Shape, Label, StartPad } from '../ui/Shapes.jsx'
+import Chaser from '../ui/Chaser.jsx'
 import { ArmHint } from '../ui/Hud.jsx'
 import useDodgeScene from './useDodgeScene.js'
-import { insideWithMargin, dist } from '../engine/geometry.js'
+import { insideWithMargin, dist, stepToward } from '../engine/geometry.js'
 import { LASER } from '../data/maps.js'
 import { TUNING } from '../data/config.js'
 import { sfx } from '../audio/chiptune.js'
 
 const T = TUNING.laser
+const TC = TUNING.chaser
 
 // 추출 도형 중 위/아래 벽 (y 로 판별)
 const FIELD_TOP = 148
 const FIELD_BOTTOM = 374
 
 /**
+ * 추격 캐릭터는 오른쪽 화면 밖에서 걸어 들어온다.
+ * 이 필드는 왼쪽이 발사자로 막혀 있어 들어올 방향이 하나뿐이다. 그래서 자리를
+ * 고르는 대신, 플레이어가 오른쪽 끝에 붙어 있는 동안에는 등장을 미룬다 —
+ * 코앞에서 튀어나오면 피할 방법이 없다.
+ */
+const CHASER_SPAWN = { x: 1030, y: 260 }
+const CHASER_SPAWN_MAX_X = 760
+
+/**
  * 원작 p19 「캐릭터가 레이저를 발사합니다 조심하세요!!! (추신: 팔도 위 아래로 움직임)」.
  *
  * 왼쪽 캐릭터의 팔이 상하로 왕복하고, 팔 끝에서 레이저가 오른쪽으로 날아온다.
+ * 거기에 추격 캐릭터가 오른쪽에서 들어와 따라붙는다 — 탄을 피하면서 도망쳐야 한다.
  * 위아래 벽 사이 좁은 필드에서 survive 초를 버티면 통과.
  */
 export default function Laser({ onClear, onDeath, vp, paused }) {
@@ -39,14 +51,18 @@ export default function Laser({ onClear, onDeath, vp, paused }) {
     []
   )
 
-  const [frame, setFrame] = useState({ armY: 260, bolts: [], left: T.survive, cursor: null })
+  const [frame, setFrame] = useState({ armY: 260, bolts: [], chaser: null, left: T.survive, cursor: null })
   const boltsRef = useRef([])
   const lastFireRef = useRef(0)
+  const chaserRef = useRef(null)
   const cleared = useRef(false)
 
   const start = { x: 300, y: 260 }
   const margin = vp.margin(T.margin)
   const boltR = vp.mobile ? T.boltR * 0.85 : T.boltR
+  const chaserR = vp.mobile ? TC.r * 0.85 : TC.r
+  // 발사자 몸통(x<136) 과 위/아래 벽 안으로는 들어가지 못하게 가둔다
+  const chaserBox = [150, FIELD_TOP + chaserR, CHASER_SPAWN.x, FIELD_BOTTOM - chaserR]
 
   const { pointer, armed, showHint } = useDodgeScene({
     startPoint: start,
@@ -68,8 +84,24 @@ export default function Laser({ onClear, onDeath, vp, paused }) {
         .map((b) => ({ ...b, x: b.x + T.boltSpeed * dt }))
         .filter((b) => b.x < 1010)
 
+      // 추격 캐릭터 — 조금 늦게 들어와 필드 안에서만 따라붙는다
+      if (!chaserRef.current && t >= TC.delay && c.x <= CHASER_SPAWN_MAX_X) {
+        chaserRef.current = { ...CHASER_SPAWN, bornAt: t }
+      }
+      if (chaserRef.current) {
+        chaserRef.current = stepToward(chaserRef.current, c.x, c.y, TC.speed * dt, chaserBox)
+      }
+      // 걸어 들어오는 동안은 아직 판정이 없다
+      const chaserLive = chaserRef.current && t >= chaserRef.current.bornAt + TC.grace
+
       const left = Math.max(0, T.survive - t)
-      setFrame({ armY, bolts: boltsRef.current, left, cursor: { x: c.x, y: c.y, touch: c.touch } })
+      setFrame({
+        armY,
+        bolts: boltsRef.current,
+        chaser: chaserRef.current && { ...chaserRef.current, phase: t * 5, live: chaserLive },
+        left,
+        cursor: { x: c.x, y: c.y, touch: c.touch },
+      })
 
       if (!cleared.current && left <= 0) {
         cleared.current = true
@@ -80,6 +112,7 @@ export default function Laser({ onClear, onDeath, vp, paused }) {
 
       for (const w of walls) if (insideWithMargin(c.x, c.y, w, margin)) return true
       for (const b of boltsRef.current) if (dist(c.x, c.y, b.x, b.y) <= boltR) return true
+      if (chaserLive && dist(c.x, c.y, chaserRef.current.x, chaserRef.current.y) <= chaserR) return true
       return false
     },
   })
@@ -108,8 +141,18 @@ export default function Laser({ onClear, onDeath, vp, paused }) {
           </g>
         ))}
 
+        {frame.chaser && (
+          <Chaser
+            x={frame.chaser.x}
+            y={frame.chaser.y}
+            r={chaserR}
+            phase={frame.chaser.phase}
+            opacity={frame.chaser.live ? 1 : 0.45}
+          />
+        )}
+
         <Label x={560} y={FIELD_TOP - 40} size={20} fill="#fff" stroke="#00b0f0">
-          레이저를 발사합니다 조심하세요!!! (팔도 위 아래로 움직임)
+          레이저를 발사합니다 조심하세요!!! (뒤에서도 쫓아옵니다)
         </Label>
         <Label x={560} y={FIELD_BOTTOM + 46} size={30} fill="#fff" stroke="#00b0f0">
           {frame.left.toFixed(1)} 초 버티기

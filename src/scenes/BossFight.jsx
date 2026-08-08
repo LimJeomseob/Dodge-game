@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import Stage from '../ui/Stage.jsx'
+import Boss from '../ui/Boss.jsx'
 import { Label } from '../ui/Shapes.jsx'
 import { TUNING } from '../data/config.js'
 import { sfx } from '../audio/chiptune.js'
@@ -65,27 +66,6 @@ export default function BossFight({ onClear, onDeath, vp, paused }) {
       </Label>
       <HpBar hp={hp} max={T.hp} />
     </Stage>
-  )
-}
-
-function Boss({ damage }) {
-  const cracks = Array.from({ length: damage * 3 }, (_, i) => {
-    const a = (i / Math.max(1, damage * 3)) * Math.PI * 2
-    return [480 + Math.cos(a) * 40, 250 + Math.sin(a) * 40, 480 + Math.cos(a) * 150, 250 + Math.sin(a) * 150]
-  })
-  return (
-    <g pointerEvents="none">
-      <circle cx="480" cy="250" r={165 - damage * 8} fill="#c00000" />
-      <ellipse cx="480" cy="250" rx={26 - damage * 2} ry={130 - damage * 10} fill="#000" />
-      {cracks.map(([x1, y1, x2, y2], i) => (
-        <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="#1a0000" strokeWidth="6" />
-      ))}
-      {damage >= 4 && (
-        <text x="480" y="250" fontSize="40" fill="#fff" textAnchor="middle" opacity="0.5">
-          ???
-        </text>
-      )}
-    </g>
   )
 }
 
