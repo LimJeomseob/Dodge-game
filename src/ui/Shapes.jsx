@@ -2,10 +2,12 @@
 
 export function Shape({ s, fill, opacity = 1, ...rest }) {
   const f = fill || s.fill
-  if (s.t === 'circle') return <circle cx={s.cx} cy={s.cy} r={s.r} fill={f} opacity={opacity} {...rest} />
-  if (s.t === 'ellipse')
-    return <ellipse cx={s.cx} cy={s.cy} rx={s.rx} ry={s.ry} fill={f} opacity={opacity} {...rest} />
-  return <polygon points={s.pts.map((p) => p.join(',')).join(' ')} fill={f} opacity={opacity} {...rest} />
+  // 도형 데이터가 외곽선을 들고 있으면 그대로 쓴다 (호출부 prop 이 우선)
+  const line = s.stroke ? { stroke: s.stroke, strokeWidth: s.strokeWidth ?? 1.2 } : null
+  const p = { fill: f, opacity, ...line, ...rest }
+  if (s.t === 'circle') return <circle cx={s.cx} cy={s.cy} r={s.r} {...p} />
+  if (s.t === 'ellipse') return <ellipse cx={s.cx} cy={s.cy} rx={s.rx} ry={s.ry} {...p} />
+  return <polygon points={s.pts.map((pt) => pt.join(',')).join(' ')} {...p} />
 }
 
 export function Shapes({ list, fill, opacity, ...rest }) {

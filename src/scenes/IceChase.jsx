@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import Stage, { TazolMan, TouchLeash } from '../ui/Stage.jsx'
 import { Label, StartPad } from '../ui/Shapes.jsx'
-import Chaser from '../ui/Chaser.jsx'
+import { Chaser } from '../ui/Character.jsx'
 import { ArmHint } from '../ui/Hud.jsx'
 import useDodgeScene from './useDodgeScene.js'
 import { dist, stepToward } from '../engine/geometry.js'
