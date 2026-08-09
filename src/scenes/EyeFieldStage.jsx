@@ -3,7 +3,7 @@ import Stage, { TazolMan, TouchLeash } from '../ui/Stage.jsx'
 import { Shape, Label, StartPad } from '../ui/Shapes.jsx'
 import { ArmHint } from '../ui/Hud.jsx'
 import useDodgeScene from './useDodgeScene.js'
-import { insideWithMargin, dist, findSafeSpot, scaleShape } from '../engine/geometry.js'
+import { insideWithMargin, dist, reachDist, findSafeSpot, scaleShape } from '../engine/geometry.js'
 import { EYEFIELD } from '../data/maps.js'
 import { TUNING } from '../data/config.js'
 import { sfx } from '../audio/chiptune.js'
@@ -61,7 +61,7 @@ export default function EyeFieldStage({ onClear, onDeath, vp, paused }) {
       }
       setFrame(frameRef.current)
 
-      if (!cleared.current && dist(c.x, c.y, exit.x, exit.y) <= exitR) {
+      if (!cleared.current && reachDist(c, exit.x, exit.y) <= exitR) {
         cleared.current = true
         sfx('clear')
         onClear()

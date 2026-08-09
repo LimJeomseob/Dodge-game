@@ -1,7 +1,7 @@
 import { useCallback, useRef, useState } from 'react'
 import usePointer from '../hooks/usePointer.js'
 import useGameLoop from '../hooks/useGameLoop.js'
-import { findSafeSpot } from '../engine/geometry.js'
+import { findSafeSpot, reachDist } from '../engine/geometry.js'
 import { sfx } from '../audio/chiptune.js'
 import { markArmHintSeen, shouldShowArmHint } from '../ui/hints.js'
 
@@ -52,7 +52,10 @@ export default function useDodgeScene({
     const c = pointer.posRef.current
     if (!c.active) return
     if (!armedRef.current) {
-      const d = Math.hypot(c.x - start.current.x, c.y - start.current.y)
+      // 터치는 커서가 손가락보다 TOUCH_Y_OFFSET 만큼 위에 찍히는데, 폰에서 그 거리(약 55px)가
+      // 판정 반경(39~45)보다 넓다. 그래서 초록 점을 정확히 짚을수록 시작이 안 됐다 — 안내 문구와
+      // 정반대다. 커서와 손가락 중 가까운 쪽으로 판정한다. 마우스는 두 점이 같아 동작이 그대로다.
+      const d = reachDist(c, start.current.x, start.current.y)
       if (d <= armRadius) {
         armedRef.current = true
         armedAt.current = elapsed

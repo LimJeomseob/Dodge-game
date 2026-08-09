@@ -10,7 +10,7 @@ export const TOUCH_Y_OFFSET = 40
 export const MOBILE_MARGIN_BONUS = 1.6
 /** 모바일에서 목표(출구/버튼) 반경을 얼마나 키울지 */
 export const MOBILE_TARGET_BONUS = 1.5
-/** 이 폭 미만이면 모바일로 간주 (CSS px) */
+/** 이 폭 미만이면 모바일로 간주 (CSS px) — 포인터가 손가락이 아닐 때의 보조 기준 */
 export const MOBILE_BREAKPOINT = 820
 
 export const TUNING = {
@@ -84,9 +84,15 @@ export const TUNING = {
   },
 }
 
-/** 화면 폭에 따라 판정 여유·목표 반경을 보정한다 (모바일 최적화) */
-export function scaleForViewport(width) {
-  const mobile = width > 0 && width < MOBILE_BREAKPOINT
+/**
+ * 판정 여유·목표 반경을 손가락 조작에 맞게 보정한다.
+ *
+ * 폭만으로 판정하면 폰을 가로로 눕혔을 때(아이폰 14 = 844px) 모바일에서 빠진다.
+ * 게임이 "기기를 가로로 돌리세요" 라고 안내하는 만큼, 안내를 따른 순간 보정이 전부
+ * 꺼지는 셈이었다. 그래서 포인터가 손가락인지(coarse)를 먼저 본다.
+ */
+export function scaleForViewport(width, coarse = false) {
+  const mobile = coarse || (width > 0 && width < MOBILE_BREAKPOINT)
   return {
     mobile,
     margin: (m) => (mobile ? m * MOBILE_MARGIN_BONUS : m),

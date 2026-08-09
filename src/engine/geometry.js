@@ -7,6 +7,19 @@ export const dist = (ax, ay, bx, by) => Math.hypot(ax - bx, ay - by)
 
 export const clamp = (v, lo, hi) => (v < lo ? lo : v > hi ? hi : v)
 
+/**
+ * 커서와 손가락 중 가까운 쪽까지의 거리.
+ *
+ * 터치일 때 usePointer 는 캐릭터가 손가락에 가리지 않도록 커서를 손가락보다 위에 띄운다.
+ * 그 탓에 목표(시작점·출구)를 손가락으로 정확히 짚으면 커서는 목표 위쪽을 스쳐 판정을
+ * 놓친다. 목표에 닿았는지 볼 때만 이 함수를 쓴다.
+ *
+ * 장애물 충돌에는 절대 쓰지 말 것 — 두 점 중 가까운 쪽으로 죽으면 더 자주 죽는다.
+ * 마우스는 fx/fy 가 x/y 와 같아 결과가 dist 와 동일하다.
+ */
+export const reachDist = (c, x, y) =>
+  Math.min(dist(c.x, c.y, x, y), dist(c.fx ?? c.x, c.fy ?? c.y, x, y))
+
 /** 점이 폴리곤 내부인지 (ray casting) */
 export function pointInPoly(px, py, pts) {
   let inside = false

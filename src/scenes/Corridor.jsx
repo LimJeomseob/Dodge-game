@@ -3,7 +3,7 @@ import Stage, { TazolMan, TouchLeash } from '../ui/Stage.jsx'
 import { Shape, Label, StartPad } from '../ui/Shapes.jsx'
 import { ArmHint } from '../ui/Hud.jsx'
 import useDodgeScene from './useDodgeScene.js'
-import { insideWithMargin, dist } from '../engine/geometry.js'
+import { insideWithMargin, dist, reachDist } from '../engine/geometry.js'
 import { CORRIDOR } from '../data/maps.js'
 import { TUNING } from '../data/config.js'
 import { sfx } from '../audio/chiptune.js'
@@ -75,7 +75,7 @@ export default function Corridor({ onClear, onDeath, vp, paused }) {
       }))
       setFrame({ dots: moving, risers: rising, cursor: { x: c.x, y: c.y, touch: c.touch } })
 
-      if (!cleared.current && dist(c.x, c.y, exit.x, exit.y) <= exitR) {
+      if (!cleared.current && reachDist(c, exit.x, exit.y) <= exitR) {
         cleared.current = true
         sfx('clear')
         onClear()
