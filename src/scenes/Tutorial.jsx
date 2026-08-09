@@ -3,7 +3,7 @@ import Stage, { TazolMan, TouchLeash } from '../ui/Stage.jsx'
 import { Shapes, Label, StartPad, CircleButton } from '../ui/Shapes.jsx'
 import { ArmHint } from '../ui/Hud.jsx'
 import useDodgeScene from './useDodgeScene.js'
-import { hitsAny, dist } from '../engine/geometry.js'
+import { hitsAny, reachDist } from '../engine/geometry.js'
 import { TUNING } from '../data/config.js'
 import { sfx } from '../audio/chiptune.js'
 
@@ -29,7 +29,7 @@ export default function Tutorial({ onClear, onDeath, vp, paused }) {
     armRadius: vp.target(30),
     check: (dt, t, c) => {
       setCursor({ x: c.x, y: c.y, touch: c.touch })
-      if (!cleared.current && dist(c.x, c.y, EXIT.x, EXIT.y) <= vp.target(TUNING.maze.exitRadius)) {
+      if (!cleared.current && reachDist(c, EXIT.x, EXIT.y) <= vp.target(TUNING.maze.exitRadius)) {
         cleared.current = true
         sfx('clear')
         onClear()

@@ -53,7 +53,9 @@ export function RetryChoiceOverlay({ onRetry }) {
 export function ArmHint({ mobile }) {
   return (
     <div className="arm-hint">
-      {mobile ? '초록 점을 손가락으로 짚고 그대로 끌어라' : '초록 점에 커서를 올리면 시작'}
+      {mobile
+        ? '초록 점을 짚고 그대로 끌어라 — 캐릭터는 손가락 살짝 위'
+        : '초록 점에 커서를 올리면 시작'}
     </div>
   )
 }

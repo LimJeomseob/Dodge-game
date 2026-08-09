@@ -3,7 +3,7 @@ import Stage, { TazolMan, TouchLeash } from '../ui/Stage.jsx'
 import { Shape, Label, StartPad, CircleButton } from '../ui/Shapes.jsx'
 import { ArmHint } from '../ui/Hud.jsx'
 import useDodgeScene from './useDodgeScene.js'
-import { insideWithMargin, dist } from '../engine/geometry.js'
+import { insideWithMargin, dist, reachDist } from '../engine/geometry.js'
 import { MAZES } from '../data/maps.js'
 import { MAZE_CONFIG, PAD_BLUE } from '../data/stages.js'
 import { TUNING } from '../data/config.js'
@@ -47,7 +47,7 @@ export default function MazeStage({ mapIndex, onClear, onDeath, vp, paused }) {
       setOffsets(next)
       setCursor({ x: c.x, y: c.y, touch: c.touch })
 
-      if (!cleared.current && dist(c.x, c.y, cfg.exit.x, cfg.exit.y) <= exitR) {
+      if (!cleared.current && reachDist(c, cfg.exit.x, cfg.exit.y) <= exitR) {
         cleared.current = true
         sfx('clear')
         onClear()

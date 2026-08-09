@@ -24,9 +24,8 @@ export default function Title({ onStart, vp, fullscreen }) {
     // 거부되거나 지원하지 않아도 게임 진행에는 영향이 없다.
     // 데스크톱에서 갑자기 전체화면이 되면 당황스러우니 터치 기기에서만 자동 진입하고,
     // 그 외에는 HUD 의 ⛶ 버튼으로 직접 켜게 둔다.
-    const touchDevice =
-      vp.mobile || (typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches)
-    if (touchDevice) fullscreen?.request().then((ok) => ok && lockLandscape())
+    // vp.mobile 이 이미 pointer:coarse 를 포함한다 (useViewport)
+    if (vp.mobile) fullscreen?.request().then((ok) => ok && lockLandscape())
     onStart()
   }
 
@@ -58,7 +57,9 @@ export default function Title({ onStart, vp, fullscreen }) {
             {vp.mobile ? '① 초록 「시작」 점을 손가락으로 짚는다' : '① 초록 「시작」 점에 커서를 올린다'}
           </Label>
           <Label x={480} y={340} size={21}>
-            {vp.mobile ? '② 손을 떼지 말고 그대로 끌어서 피한다' : '② 도형에 닿지 않게 커서를 움직인다'}
+            {vp.mobile
+              ? '② 손을 떼지 말고 끌어라 — 캐릭터는 손가락 살짝 위'
+              : '② 도형에 닿지 않게 커서를 움직인다'}
           </Label>
           <Label x={480} y={380} size={21}>
             ③ 파란 출구에 닿으면 다음 스테이지
